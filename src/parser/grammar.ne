@@ -2,6 +2,7 @@
 const moo = require("moo");
 const lexer = moo.compile({
     boundary: /\/\/ js/,
+    comment: /[ \t]*#[^\n]*/,
     NL: { match: /\n/, lineBreaks: true },
     line: /[^\n]+/,
 });

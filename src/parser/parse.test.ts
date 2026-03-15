@@ -36,4 +36,13 @@ describe('parse', () => {
             x = 1
         `)
     })
+
+    it.skip('strips # comment lines', () => {
+        expectParse(`
+            # this is a comment
+            x = 1
+        `).toBe(`
+            x = 1
+        `)
+    })
 })
