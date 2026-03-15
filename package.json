@@ -8,13 +8,16 @@
         "build": "vite build",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
-        "test": "vitest"
+        "test": "vitest",
+        "test:ui": "vitest --ui --watch"
     },
     "devDependencies": {
         "@tailwindcss/vite": "4.2.1",
+        "@types/dedent": "0.7.2",
         "@types/moo": "0.5.10",
         "@types/nearley": "2.11.5",
         "@vitejs/plugin-basic-ssl": "2.2.0",
+        "@vitest/ui": "4.1.0",
         "prettier": "3.8.1",
         "tailwindcss": "4.2.1",
         "typescript": "5.9.3",
@@ -22,6 +25,7 @@
         "vitest": "4.1.0"
     },
     "dependencies": {
+        "dedent": "1.7.2",
         "moo": "0.5.3",
         "nearley": "2.20.1"
     }
