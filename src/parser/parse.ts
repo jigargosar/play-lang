@@ -9,8 +9,10 @@ function getOnly<T>(arr: T[], errMsg: string): T {
     return arr[0]
 }
 
+const compiledGrammar = nearley.Grammar.fromCompiled(grammar)
+
 export function parse(source: string): string {
-    const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar))
+    const parser = new nearley.Parser(compiledGrammar)
     parser.feed(source)
     return getOnly(parser.results, 'Parse: expected exactly 1 result')
 }
