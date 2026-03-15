@@ -15,7 +15,7 @@ function expectParse(input: string) {
     }
 }
 
-describe('parse — passthrough', () => {
+describe('parse', () => {
     it('passes through all input unchanged', () => {
         expectParse(`
             x = 1
@@ -25,6 +25,15 @@ describe('parse — passthrough', () => {
             x = 1
             y = 2
             z = x + y
+        `)
+    })
+
+    it('strips the // js boundary line', () => {
+        expectParse(`
+            // js
+            x = 1
+        `).toBe(`
+            x = 1
         `)
     })
 })
