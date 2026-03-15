@@ -5,6 +5,7 @@ import nearleyGrammar from 'nearley/lib/nearley-language-bootstrapped'
 import moo from 'moo'
 import { pipe } from 'remeda'
 
+
 function getOnly<T>(arr: T[], errMsg: string): T {
     if (arr.length !== 1) {
         console.error(errMsg, JSON.stringify(arr, null, 2))
@@ -19,18 +20,6 @@ function getOnly<T>(arr: T[], errMsg: string): T {
 // `evalGrammarJs` receives the lexer as a parameter named `_lexer`
 // so eval can resolve that reference.
 
-function parseGrammarSource(grammarSource: string) {
-    const grammarParser = new nearley.Parser(nearleyGrammar)
-    grammarParser.feed(grammarSource)
-    return getOnly(grammarParser.results, 'Grammar parse: expected exactly 1 result')
-}
-
-function evalGrammarJs(grammarJs: string, _lexer: moo.Lexer) {
-    const module = { exports: {} as Record<string, unknown> }
-    eval(grammarJs)
-    return module.exports
-}
-
 const playLexer = moo.compile({
     NL: { match: /\n/, lineBreaks: true },
     line: /[^\n]+/,
@@ -44,22 +33,29 @@ line -> %line {% (d) => d[0].value %}
       | %NL {% (d) => d[0].value %}
 `.trim()
 
-function compileGrammar(grammarSource: string, lexer: moo.Lexer) {
-    return pipe(
-        grammarSource,
-        parseGrammarSource,
-        (ast) => {
-            const info = compile(ast, {})
-            info.lexer = lexer
-            return info
-        },
-        (info) => generate(info, 'playGrammar'),
-        (js) => evalGrammarJs(js, lexer),
-        nearley.Grammar.fromCompiled,
-    )
-}
-
-const grammar = compileGrammar(grammarSource, playLexer)
+const grammar = pipe(
+    grammarSource,
+    (src) => {
+        const p = new nearley.Parser(nearleyGrammar)
+        p.feed(src)
+        return getOnly(p.results, 'Grammar parse: expected exactly 1 result')
+    },
+    (ast) => {
+        const info = compile(ast, {})
+        info.lexer = playLexer
+        return info
+    },
+    (info) => generate(info, 'playGrammar'),
+    (js) => {
+        // eval expects `_lexer` variable to match `@lexer _lexer` directive
+        // noinspection JSUnusedLocalSymbols
+        const _lexer = playLexer
+        const module = { exports: {} as Record<string, unknown> }
+        eval(js)
+        return module.exports
+    },
+    nearley.Grammar.fromCompiled,
+)
 
 export function parse(source: string): string {
     const parser = new nearley.Parser(grammar)
