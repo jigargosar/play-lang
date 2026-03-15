@@ -13,8 +13,7 @@ const grammarSource = `
 @lexer lexer
 
 main -> line:* {% (d) => d[0].join('') %}
-line -> %line %NL {% (d) => d[0].value + d[1].value %}
-      | %line {% (d) => d[0].value %}
+line -> %line {% (d) => d[0].value %}
       | %NL {% (d) => d[0].value %}
 `
 
