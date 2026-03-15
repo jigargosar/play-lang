@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #000000;
+    --panel:      #080808;
+    --panel2:     #0d0d0d;
+    --border:     #1a1a1a;
+    --border2:    #242424;
+    --accent:     oklch(80% 0.28 145);
+    --accent-dim: oklch(40% 0.15 145);
+    --accent-glow:oklch(80% 0.28 145 / 0.15);
+    --text:       #c8c8c8;
+    --muted:      #3a3a3a;
+    --muted2:     #555;
+    --success:    oklch(72% 0.22 145);
+    --error:      oklch(65% 0.22 25);
+    --pending:    oklch(75% 0.18 80);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .header {
+    height: 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--panel);
+  }
+  .logo {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-mark {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid var(--border2);
+    color: var(--muted2);
+    letter-spacing: 0.08em;
+    background: transparent;
+  }
+  .badge.active {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+  .spacer { flex: 1; }
+  .status { display: flex; align-items: center; gap: 8px; }
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .status-dot.error   { background: var(--error); }
+  .status-dot.pending { background: var(--pending); }
+  .status-label {
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 0.06em;
+    min-width: 54px;
+  }
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 80px;
+    min-height: 0;
+  }
+  .panel-bar {
+    height: 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--panel2);
+  }
+  .panel-label {
+    font-size: 9px;
+    color: var(--muted2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .panel-name { font-size: 10px; color: var(--muted2); opacity: 0.6; }
+  .panel-indicator {
+    margin-left: auto;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+  }
+  #editor-container { flex: 1; min-height: 0; overflow: hidden; }
+  .divider {
+    width: 1px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    transition: background 0.15s;
+  }
+  .divider::after { content: ''; position: absolute; inset: 0 -4px; }
+  .divider:hover, .divider.dragging {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  #preview-panel { flex: 1; min-width: 80px; }
+  #preview-frame {
+    display: block;
+    width: 100%;
+    flex: 1;
+    border: none;
+    background: #000;
+    min-height: 0;
+  }
+  .footer {
+    height: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 18px;
+    flex-shrink: 0;
+    background: var(--panel);
+  }
+  .footer-item { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; }
+  .footer-item b { color: var(--muted2); font-weight: 400; }
+  .footer-right { margin-left: auto; font-size: 9px; color: var(--border2); letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">▸</div>
+    play
+  </div>
+  <div class="badge">v0.2</div>
+  <div class="badge active">phase 2</div>
+  <div class="spacer"></div>
+  <div class="status">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="status-label" id="status-label">ready</div>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div class="panel" id="editor-panel" style="width:50%">
+    <div class="panel-bar">
+      <div class="panel-label">editor</div>
+      <div class="panel-name">index.play</div>
+      <div class="panel-indicator"></div>
+    </div>
+    <div id="editor-container"></div>
+  </div>
+
+  <div class="divider" id="divider"></div>
+
+  <div class="panel" id="preview-panel" style="display:flex;flex-direction:column;">
+    <div class="panel-bar">
+      <div class="panel-label">preview</div>
+    </div>
+    <iframe id="preview-frame" sandbox="allow-scripts"></iframe>
+  </div>
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+<script>
+// ── Footer ────────────────────────────────────────────────────────────────────
+document.getElementById('footer').innerHTML = [
+  ['lang',       'play'],
+  ['comments',   '# hash'],
+  ['transforms', 'yes/no  def  do'],
+  ['debounce',   '300ms'],
+].map(([k,v]) => `<div class="footer-item">${k}: <b>${v}</b></div>`).join('')
+  + `<div class="footer-right">playground-03</div>`;
+
+// ── Initial code — showcases Phase 2 features ─────────────────────────────────
+const INITIAL = `# index.play — phase 2
+# # is a real comment now
+
+# do compiles to arrow function
+const greet  = do(name) "Hello, " + name
+const double = do(x) x * 2
+
+# yes / no compile to true / false
+const active = yes
+const hidden = no
+
+document.body.style.cssText = \`
+  margin: 0;
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #d0d0d0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 40px 48px;
+\`
+
+const title = document.createElement('div')
+title.textContent = '▸ phase 2 transforms'
+title.style.cssText = \`
+  font-size: 11px;
+  color: oklch(80% 0.28 145);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+\`
+document.body.appendChild(title)
+
+const items = [
+  { src: "do(name) ...",  result: greet('Playground') },
+  { src: "do(x) x * 2",  result: double(21) },
+  { src: "yes",           result: active },
+  { src: "no",            result: hidden },
+]
+
+items.forEach(do(item) {
+  const row = document.createElement('div')
+  row.style.cssText = \`
+    display: grid;
+    grid-template-columns: 220px 32px 1fr;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid #161616;
+  \`
+  const src = document.createElement('span')
+  src.textContent = item.src
+  src.style.color = '#888'
+  const arrow = document.createElement('span')
+  arrow.textContent = '→'
+  arrow.style.color = '#333'
+  const val = document.createElement('span')
+  val.textContent = String(item.result)
+  val.style.color = 'oklch(80% 0.28 145)'
+  row.appendChild(src)
+  row.appendChild(arrow)
+  row.appendChild(val)
+  document.body.appendChild(row)
+})`;
+
+// ── Transpiler — Phase 2 ──────────────────────────────────────────────────────
+function transpile(src) {
+  try {
+    // Step 1 — strip # comments (but not inside strings)
+    const lines = src.split('\n').map(line => {
+      // skip lines that are entirely a comment
+      if (line.trimStart().startsWith('#')) return '';
+      // strip trailing inline # comments (preceded by space)
+      const i = line.indexOf(' #');
+      if (i !== -1) return line.slice(0, i);
+      return line;
+    });
+
+    let out = lines.join('\n');
+
+    // Step 2 — def name(args) → function name(args)
+    // Handles: def name(args), def name (args), def name with no args
+    out = out.replace(/\bdef\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(\([^)]*\))?/g,
+      (_, name, args) => `function ${name}${args || '()'}`
+    );
+
+    // Step 3 — do(args) expr  →  (args) => expr
+    // Also bare: do(args) with block body
+    out = out.replace(/\bdo\s*(\([^)]*\))/g, '$1 =>');
+
+    // Step 4 — yes / no  (whole word only, not inside strings)
+    out = out.replace(/\byes\b/g, 'true');
+    out = out.replace(/\bno\b/g,  'false');
+
+    return { ok: true, output: out };
+  } catch(e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ── iframe runner ─────────────────────────────────────────────────────────────
+const frame = document.getElementById('preview-frame');
+
+function run(code) {
+  const escaped = code.replace(/<\/script>/gi, '<\\/script>');
+  frame.srcdoc = `<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box}body{margin:0;background:#000}</style>
+</head><body>
+<script>
+window.onerror = function(msg, _s, line) {
+  document.body.style.cssText = 'margin:0;padding:24px;background:#000;font-family:monospace';
+  document.body.innerHTML = '<pre style="color:oklch(65% 0.22 25);font-size:12px;line-height:1.8">&#x2716; ' + msg + '\\nline ' + line + '</pre>';
+  return true;
+};
+<\/script>
+<script>${escaped}<\/script>
+</body></html>`;
+}
+
+// ── Status ────────────────────────────────────────────────────────────────────
+const dot   = document.getElementById('status-dot');
+const label = document.getElementById('status-label');
+function setStatus(state, text) {
+  dot.className = 'status-dot' + (state === 'ok' ? '' : ' ' + state);
+  label.textContent = text;
+}
+
+// ── Debounce ──────────────────────────────────────────────────────────────────
+let timer;
+function onChange(code) {
+  clearTimeout(timer);
+  setStatus('pending', 'compiling');
+  timer = setTimeout(() => {
+    const r = transpile(code);
+    if (r.ok) { run(r.output); setStatus('ok', 'ready'); }
+    else       { setStatus('error', r.error || 'error'); }
+  }, 300);
+}
+
+// ── Monaco ────────────────────────────────────────────────────────────────────
+require.config({
+  paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
+});
+
+require(['vs/editor/editor.main'], function () {
+
+  // ── Register 'play' language ──────────────────────────────────────────────
+  monaco.languages.register({ id: 'play' });
+
+  monaco.languages.setMonarchTokensProvider('play', {
+    keywords: [
+      'def', 'do', 'return', 'if', 'elif', 'else', 'unless',
+      'for', 'while', 'in', 'of', 'const', 'let', 'var',
+      'class', 'new', 'import', 'export', 'from', 'true', 'false',
+      'null', 'undefined', 'this', 'self',
+    ],
+    booleans: ['yes', 'no'],
+    tokenizer: {
+      root: [
+        // # comments
+        [/#.*$/, 'comment'],
+        // strings
+        [/"([^"\\]|\\.)*$/, 'string.invalid'],
+        [/"/, 'string', '@string_double'],
+        [/'([^'\\]|\\.)*$/, 'string.invalid'],
+        [/'/, 'string', '@string_single'],
+        // template literals
+        [/`/, 'string', '@string_backtick'],
+        // numbers
+        [/\d+(\.\d+)?/, 'number'],
+        // keywords + booleans
+        [/[a-zA-Z_$][\w$]*/, {
+          cases: {
+            '@keywords': 'keyword',
+            '@booleans': 'boolean',
+            '@default':  'identifier',
+          }
+        }],
+        // operators
+        [/[=+\-*/<>!&|^~%]+/, 'operator'],
+        // delimiters
+        [/[{}()\[\]]/, 'delimiter'],
+        [/[,;.]/, 'delimiter'],
+        // whitespace
+        [/\s+/, 'white'],
+      ],
+      string_double: [
+        [/[^"\\{]+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/"/, 'string', '@pop'],
+      ],
+      string_single: [
+        [/[^'\\]+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/'/, 'string', '@pop'],
+      ],
+      string_backtick: [
+        [/[^`\\$]+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/`/, 'string', '@pop'],
+      ],
+    }
+  });
+
+  // ── Theme ─────────────────────────────────────────────────────────────────
+  monaco.editor.defineTheme('void', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: '',             foreground: 'e0e0e0' },
+      { token: 'comment',      foreground: '606060', fontStyle: 'italic' },
+      { token: 'keyword',      foreground: '7defa8' },
+      { token: 'boolean',      foreground: '4ecf84' },
+      { token: 'string',       foreground: '5abf85' },
+      { token: 'string.escape',foreground: '7defa8' },
+      { token: 'number',       foreground: '7defa8' },
+      { token: 'identifier',   foreground: 'e0e0e0' },
+      { token: 'operator',     foreground: '666666' },
+      { token: 'delimiter',    foreground: '444444' },
+      { token: 'white',        foreground: '000000' },
+    ],
+    colors: {
+      'editor.background':                  '#000000',
+      'editor.foreground':                  '#c8c8c8',
+      'editorLineNumber.foreground':        '#1c1c1c',
+      'editorLineNumber.activeForeground':  '#333333',
+      'editor.selectionBackground':         '#0d2a1a',
+      'editor.lineHighlightBackground':     '#080808',
+      'editorCursor.foreground':            '#7defa8',
+      'editorIndentGuide.background1':      '#111111',
+      'editorBracketMatch.background':      '#0d2a1a',
+      'editorBracketMatch.border':          '#7defa822',
+      'scrollbar.shadow':                   '#00000000',
+      'scrollbarSlider.background':         '#111111',
+      'scrollbarSlider.hoverBackground':    '#1a1a1a',
+      'scrollbarSlider.activeBackground':   '#222222',
+      'editorGutter.background':            '#000000',
+    }
+  });
+
+  // ── Editor ────────────────────────────────────────────────────────────────
+  const ed = monaco.editor.create(document.getElementById('editor-container'), {
+    value: INITIAL,
+    language: 'play',
+    theme: 'void',
+    fontSize: 13,
+    fontFamily: "'IBM Plex Mono', 'JetBrains Mono', monospace",
+    fontLigatures: true,
+    lineHeight: 22,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    padding: { top: 16, bottom: 16 },
+    renderLineHighlight: 'line',
+    smoothScrolling: true,
+    cursorBlinking: 'smooth',
+    cursorSmoothCaretAnimation: 'on',
+    overviewRulerLanes: 0,
+    hideCursorInOverviewRuler: true,
+    wordWrap: 'on',
+    lineNumbers: 'on',
+    glyphMargin: false,
+    folding: false,
+    renderWhitespace: 'none',
+    scrollbar: { verticalScrollbarSize: 4, horizontalScrollbarSize: 4 },
+    bracketPairColorization: { enabled: false },
+  });
+
+  ed.onDidChangeModelContent(() => onChange(ed.getValue()));
+
+  run(transpile(INITIAL).output);
+  setStatus('ok', 'ready');
+
+  new ResizeObserver(() => ed.layout())
+    .observe(document.getElementById('editor-container'));
+});
+
+// ── Resizable split ───────────────────────────────────────────────────────────
+const divider     = document.getElementById('divider');
+const editorPanel = document.getElementById('editor-panel');
+const mainEl      = document.getElementById('main');
+let dragging      = false;
+
+divider.addEventListener('mousedown', e => {
+  dragging = true;
+  divider.classList.add('dragging');
+  document.body.style.userSelect = 'none';
+  document.body.style.cursor = 'col-resize';
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const r   = mainEl.getBoundingClientRect();
+  const pct = Math.min(80, Math.max(20, (e.clientX - r.left) / r.width * 100));
+  editorPanel.style.width = pct + '%';
+});
+
+document.addEventListener('mouseup', () => {
+  if (!dragging) return;
+  dragging = false;
+  divider.classList.remove('dragging');
+  document.body.style.userSelect = '';
+  document.body.style.cursor = '';
+});
+</script>
+</body>
+</html>

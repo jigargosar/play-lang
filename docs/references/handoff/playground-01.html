@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          oklch(10% 0.012 60);
+    --panel:       oklch(12% 0.015 60);
+    --panel2:      oklch(14% 0.015 60);
+    --border:      oklch(22% 0.02 60);
+    --accent:      oklch(75% 0.15 80);
+    --accent-dim:  oklch(50% 0.10 80);
+    --text:        oklch(84% 0.02 80);
+    --muted:       oklch(44% 0.02 80);
+    --success:     oklch(70% 0.15 145);
+    --error:       oklch(65% 0.20 25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    height: 44px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+    background: var(--panel);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .logo-arrow {
+    color: var(--accent);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 2px;
+    letter-spacing: 0.06em;
+    background: var(--bg);
+  }
+  .spacer { flex: 1; }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 6px var(--success);
+  }
+  .status-dot.error {
+    background: var(--error);
+    box-shadow: 0 0 6px var(--error);
+  }
+  .status-dot.pending {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .status-text {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 60px;
+  }
+
+  /* ── Main split ── */
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 80px;
+  }
+  .panel-header {
+    height: 30px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--panel2);
+  }
+  .panel-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .panel-filename {
+    font-size: 11px;
+    color: var(--text);
+    opacity: 0.7;
+  }
+  .panel-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    margin-left: auto;
+  }
+
+  #editor-container {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    width: 5px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    position: relative;
+    z-index: 10;
+  }
+  .divider:hover,
+  .divider.dragging {
+    background: var(--accent-dim);
+  }
+  .divider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .divider:hover .divider-handle,
+  .divider.dragging .divider-handle {
+    opacity: 1;
+  }
+
+  /* ── Preview ── */
+  #preview-panel { flex: 1; }
+  #preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: oklch(98% 0 0);
+    display: block;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    height: 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 20px;
+    flex-shrink: 0;
+    background: var(--panel);
+  }
+  .footer-item {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .footer-item span { color: var(--text); }
+  .footer-right {
+    margin-left: auto;
+    font-size: 10px;
+    color: oklch(30% 0.01 60);
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <span class="logo-arrow">▸</span>
+    Playground
+  </div>
+  <div class="badge">v0.1</div>
+  <div class="badge" id="phase-badge">phase 1</div>
+  <div class="spacer"></div>
+  <div class="status">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="status-text" id="status-text">ready</div>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+  <div class="panel" id="editor-panel" style="width:50%">
+    <div class="panel-header">
+      <div class="panel-label">editor</div>
+      <div class="panel-filename">index.play</div>
+      <div class="panel-dot"></div>
+    </div>
+    <div id="editor-container"></div>
+  </div>
+
+  <div class="divider" id="divider">
+    <div class="divider-handle"></div>
+  </div>
+
+  <div class="panel" id="preview-panel">
+    <div class="panel-header">
+      <div class="panel-label">preview</div>
+    </div>
+    <iframe id="preview-frame" sandbox="allow-scripts"></iframe>
+  </div>
+
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+<script>
+// ── Footer ───────────────────────────────────────────────────────────────────
+const footerData = [
+  ['lang',       'passthrough JS'],
+  ['transpiler', 'stub'],
+  ['phase',      '1'],
+  ['debounce',   '300ms'],
+];
+document.getElementById('footer').innerHTML =
+  footerData.map(([k, v]) =>
+    `<div class="footer-item">${k}: <span>${v}</span></div>`
+  ).join('') +
+  `<div class="footer-right">playground-01</div>`;
+
+// ── Initial code ─────────────────────────────────────────────────────────────
+const INITIAL_CODE = `# Phase 1 — passthrough JS
+# Edit here, preview updates live
+
+const msg = "Hello, Playground ▸"
+
+document.body.style.cssText = \`
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: oklch(10% 0.012 60);
+  color: oklch(84% 0.02 80);
+  font-family: 'Syne Mono', monospace;
+\`
+
+const h = document.createElement('div')
+h.style.cssText = \`
+  font-size: 28px;
+  font-weight: 700;
+  color: oklch(75% 0.15 80);
+  letter-spacing: 0.05em;
+\`
+h.textContent = msg
+document.body.appendChild(h)
+
+const sub = document.createElement('div')
+sub.style.cssText = \`font-size: 12px; color: oklch(44% 0.02 80); letter-spacing: 0.1em;\`
+sub.textContent = 'transpiler: passthrough — phase 1'
+document.body.appendChild(sub)`;
+
+// ── Transpiler stub ───────────────────────────────────────────────────────────
+// Phase 1: pure passthrough. Returns JS unchanged.
+// Future phases will parse and transform here.
+function transpile(source) {
+  // Strip single-line comments starting with # (Imba style)
+  // This is the ONE tiny transformation in Phase 1 — a taste of things to come
+  const output = source
+    .split('\n')
+    .map(line => {
+      const hashIdx = line.indexOf(' #');
+      if (hashIdx !== -1 && !line.trimStart().startsWith('#')) {
+        return line.slice(0, hashIdx); // strip trailing # comments
+      }
+      if (line.trimStart().startsWith('#')) return ''; // strip full-line # comments
+      return line;
+    })
+    .join('\n');
+  return { ok: true, output };
+}
+
+// ── iframe runner ─────────────────────────────────────────────────────────────
+const frame = document.getElementById('preview-frame');
+
+function runInFrame(code) {
+  const doc = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&family=Syne:wght@400;700&display=swap" rel="stylesheet">
+    <style>*{box-sizing:border-box}body{margin:0}</style>
+  </head><body><script>
+    window.onerror = function(msg, src, line, col, err) {
+      document.body.style.cssText = 'margin:0;padding:20px;background:oklch(10% 0.012 60);font-family:monospace';
+      document.body.innerHTML = '<pre style="color:oklch(65% 0.20 25);font-size:13px;line-height:1.6">'
+        + '✖ ' + msg + '\\n'
+        + 'line ' + line
+        + '</pre>';
+      return true;
+    };
+  <\/script><script>${code.replace(/<\/script>/gi, '<\\/script>')}<\/script></body></html>`;
+  frame.srcdoc = doc;
+}
+
+// ── Status helpers ────────────────────────────────────────────────────────────
+const dot  = document.getElementById('status-dot');
+const stxt = document.getElementById('status-text');
+
+function setStatus(state, msg) {
+  dot.className = 'status-dot' + (state !== 'ok' ? ' ' + state : '');
+  stxt.textContent = msg;
+}
+
+// ── Debounced change handler ──────────────────────────────────────────────────
+const DEBOUNCE_MS = 300;
+let timer;
+
+function onCodeChange(code) {
+  clearTimeout(timer);
+  setStatus('pending', 'editing…');
+  timer = setTimeout(() => {
+    const result = transpile(code);
+    if (result.ok) {
+      runInFrame(result.output);
+      setStatus('ok', 'ready');
+    } else {
+      setStatus('error', result.error || 'error');
+    }
+  }, DEBOUNCE_MS);
+}
+
+// ── Monaco ────────────────────────────────────────────────────────────────────
+require.config({
+  paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
+});
+
+require(['vs/editor/editor.main'], function () {
+  monaco.editor.defineTheme('play-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: '',          foreground: 'd4cfc5' },
+      { token: 'comment',   foreground: '3d3830', fontStyle: 'italic' },
+      { token: 'keyword',   foreground: 'e2a44a' },
+      { token: 'string',    foreground: '6dbf8b' },
+      { token: 'number',    foreground: '79b8e0' },
+      { token: 'delimiter', foreground: '6a6055' },
+      { token: 'type',      foreground: 'c49a6c' },
+    ],
+    colors: {
+      'editor.background':                  '#1a1814',
+      'editor.foreground':                  '#d4cfc5',
+      'editorLineNumber.foreground':        '#2e2a25',
+      'editorLineNumber.activeForeground':  '#6a6055',
+      'editor.selectionBackground':         '#3a3020',
+      'editor.lineHighlightBackground':     '#1e1c17',
+      'editorCursor.foreground':            '#e2a44a',
+      'editorIndentGuide.background1':      '#252018',
+      'editorWhitespace.foreground':        '#252018',
+      'editorBracketMatch.background':      '#3a3020',
+      'editorBracketMatch.border':          '#e2a44a44',
+      'scrollbar.shadow':                   '#00000000',
+      'scrollbarSlider.background':         '#2a2520',
+      'scrollbarSlider.hoverBackground':    '#3a3530',
+      'scrollbarSlider.activeBackground':   '#4a4540',
+    }
+  });
+
+  const editor = monaco.editor.create(
+    document.getElementById('editor-container'), {
+      value: INITIAL_CODE,
+      language: 'javascript',
+      theme: 'play-dark',
+      fontSize: 13,
+      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+      fontLigatures: true,
+      lineHeight: 22,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      padding: { top: 16, bottom: 16 },
+      renderLineHighlight: 'line',
+      smoothScrolling: true,
+      cursorBlinking: 'smooth',
+      cursorSmoothCaretAnimation: 'on',
+      overviewRulerLanes: 0,
+      hideCursorInOverviewRuler: true,
+      wordWrap: 'on',
+      lineNumbers: 'on',
+      glyphMargin: false,
+      folding: false,
+      renderWhitespace: 'none',
+      scrollbar: {
+        verticalScrollbarSize: 6,
+        horizontalScrollbarSize: 6,
+      },
+    }
+  );
+
+  editor.onDidChangeModelContent(() => onCodeChange(editor.getValue()));
+
+  // Initial render
+  runInFrame(transpile(INITIAL_CODE).output);
+  setStatus('ok', 'ready');
+
+  // Keep Monaco sized to its container
+  new ResizeObserver(() => editor.layout())
+    .observe(document.getElementById('editor-container'));
+});
+
+// ── Resizable divider ─────────────────────────────────────────────────────────
+const divider     = document.getElementById('divider');
+const editorPanel = document.getElementById('editor-panel');
+const mainEl      = document.getElementById('main');
+let isDragging    = false;
+
+divider.addEventListener('mousedown', e => {
+  isDragging = true;
+  divider.classList.add('dragging');
+  document.body.style.userSelect = 'none';
+  document.body.style.cursor = 'col-resize';
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const rect  = mainEl.getBoundingClientRect();
+  const pct   = ((e.clientX - rect.left) / rect.width) * 100;
+  const clamped = Math.min(80, Math.max(20, pct));
+  editorPanel.style.width = clamped + '%';
+});
+
+document.addEventListener('mouseup', () => {
+  if (!isDragging) return;
+  isDragging = false;
+  divider.classList.remove('dragging');
+  document.body.style.userSelect = '';
+  document.body.style.cursor = '';
+});
+</script>
+</body>
+</html>
