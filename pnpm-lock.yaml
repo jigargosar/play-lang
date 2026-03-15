@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/unist':
+        specifier: 3.0.3
+        version: 3.0.3
       dedent:
         specifier: 1.7.2
         version: 1.7.2
@@ -306,6 +309,9 @@ packages:
 
   '@types/node@25.5.0':
     resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
+
+  '@types/unist@3.0.3':
+    resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
   '@vitejs/plugin-basic-ssl@2.2.0':
     resolution: {integrity: sha512-nmyQ1HGRkfUxjsv3jw0+hMhEdZdrtkvMTdkzRUaRWfiO6PCWw2V2Pz3gldCq96Tn9S8htcgdTxw/gmbLLEbfYw==}
@@ -946,6 +952,8 @@ snapshots:
   '@types/node@25.5.0':
     dependencies:
       undici-types: 7.18.2
+
+  '@types/unist@3.0.3': {}
 
   '@vitejs/plugin-basic-ssl@2.2.0(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1))':
     dependencies:

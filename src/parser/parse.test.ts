@@ -37,7 +37,7 @@ describe('parse', () => {
         `)
     })
 
-    it.skip('strips # comment lines', () => {
+    it('strips # comment lines', () => {
         expectParse(`
             # this is a comment
             x = 1

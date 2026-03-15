@@ -10,7 +10,8 @@ const lexer = moo.compile({
 
 @lexer lexer
 
-main -> line:* {% (d) => d[0].join('') %}
-line -> %boundary %NL {% () => '' %}
-      | %line {% (d) => d[0].value %}
-      | %NL {% (d) => d[0].value %}
+main -> token:* {% (d) => d[0] %}
+token -> %boundary %NL {% (d) => d[0] %}
+       | %comment %NL {% (d) => d[0] %}
+       | %line {% (d) => d[0] %}
+       | %NL {% (d) => d[0] %}
