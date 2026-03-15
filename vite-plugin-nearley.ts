@@ -21,7 +21,7 @@ export default function nearleyPlugin(): Plugin {
         transform(_code, id) {
             if (!id.endsWith('.ne')) return null
             return {
-                code: execSync(`npx nearleyc "${id}"`, { encoding: 'utf-8' }),
+                code: execSync(`pnpm exec nearleyc "${id}"`, { encoding: 'utf-8' }),
                 map: null,
             }
         },
