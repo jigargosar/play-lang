@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@theme {
+    --color-bg: #131210;
+    --color-panel: #171512;
+    --color-panel2: #1b1916;
+    --color-border: #252218;
+    --color-border2: #2e2b20;
+    --color-accent: oklch(80% 0.28 145);
+    --color-accent-dim: oklch(40% 0.15 145);
+    --color-accent-glow: oklch(80% 0.28 145 / 0.15);
+    --color-text: #c8c8c8;
+    --color-muted: #3a3a3a;
+    --color-muted2: #555;
+    --color-success: oklch(72% 0.22 145);
+    --color-error: oklch(65% 0.22 25);
+    --color-pending: oklch(75% 0.18 80);
+
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+}

@@ -10,6 +10,14 @@ const DTS_CONTENT = `declare module '*.ne' {
 }
 `
 
+function toESM(cjs: string): string {
+    return cjs
+        .replace('(function () {', '')
+        .replace(/\}\)\(\);?\s*$/, '')
+        .replace(/if \(typeof module.*\n.*\n.*\n.*\n.*/, 'export default grammar;')
+        .replace("const moo = require(\"moo\");", "import moo from 'moo';")
+}
+
 export default function nearleyPlugin(): Plugin {
     return {
         name: 'vite-plugin-nearley',
@@ -20,10 +28,8 @@ export default function nearleyPlugin(): Plugin {
         },
         transform(_code, id) {
             if (!id.endsWith('.ne')) return null
-            return {
-                code: execSync(`pnpm exec nearleyc "${id}"`, { encoding: 'utf-8' }),
-                map: null,
-            }
+            const cjs = execSync(`pnpm exec nearleyc "${id}"`, { encoding: 'utf-8' })
+            return { code: toESM(cjs), map: null }
         },
     }
 }
